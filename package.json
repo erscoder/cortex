@@ -27,6 +27,14 @@
   ],
   "author": "Kike & Harvis",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/erscoder/cortex.git"
+  },
+  "bugs": {
+    "url": "https://github.com/erscoder/cortex/issues"
+  },
+  "homepage": "https://github.com/erscoder/cortex#readme",
   "dependencies": {
     "@langchain/core": "^0.2.0",
     "@langchain/langgraph": "^0.2.0",
