@@ -161,11 +161,11 @@ Integrar todos los módulos en Agent. Demo funcional.
 
 **Subtareas:**
 
-- [ ] **9.1** Integrar MemoryManager, RAG, Reasoner, Sandbox, HITL en Agent
-- [ ] **9.2** Crear `examples/basic-agent.ts`: agente que razona, busca, ejecuta
-- [ ] **9.3** Integration test e2e con mocks
-- [ ] **9.4** `npm run test:integration`
-- [ ] **9.5** Commit: `feat(agent): complete integration (COR-9)`
+- [x] **9.1** Integrar MemoryManager, RAG, Reasoner, Sandbox, HITL en Agent
+- [x] **9.2** Crear `examples/basic-agent.ts`: agente que razona, busca, ejecuta
+- [x] **9.3** Integration test e2e con mocks
+- [x] **9.4** `npm run test:integration`
+- [x] **9.5** Commit: `feat(agent): complete integration (COR-9)`
 
 ---
 
