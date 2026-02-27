@@ -25,7 +25,7 @@ export class SafeSandbox implements SandboxExecutor {
       }
       
       // Log execution
-      logs?.push({
+      logs.push({
         timestamp: new Date(),
         level: 'info',
         message: `Executing action: ${action.type}`,
@@ -44,7 +44,7 @@ export class SafeSandbox implements SandboxExecutor {
           output = { message: 'Action type not implemented' };
       }
       
-      logs?.push({
+      logs.push({
         timestamp: new Date(),
         level: 'info',
         message: `Action completed successfully`,
@@ -58,7 +58,7 @@ export class SafeSandbox implements SandboxExecutor {
       };
       
     } catch (error) {
-      logs?.push({
+      logs.push({
         timestamp: new Date(),
         level: 'error',
         message: error instanceof Error ? error.message : 'Unknown error',
@@ -93,13 +93,35 @@ export class SafeSandbox implements SandboxExecutor {
     return { valid: true };
   }
   
-  private async executeCommand(command: string): Promise<unknown> {
+  async executeCommand(command: string): Promise<unknown> {
+    // Validate command is not empty
+    if (!command || typeof command !== 'string') {
+      throw new Error('Command must be a non-empty string');
+    }
+    
+    // Check for command length limits
+    if (command.length > 10000) {
+      throw new Error('Command exceeds maximum length');
+    }
+    
     // In production, this would use Docker or a proper sandbox
-    // For now, return a placeholder
     return { message: 'Command execution requires Docker sandbox', command };
   }
   
-  private async executeApiCall(request: { url: string; method: string; body?: unknown }): Promise<unknown> {
+  async executeApiCall(request: { url: string; method: string; body?: unknown }): Promise<unknown> {
+    // Validate request structure
+    if (!request || typeof request !== 'object') {
+      throw new Error('API request must be an object');
+    }
+    
+    if (!request.url || typeof request.url !== 'string') {
+      throw new Error('API request must have a valid URL');
+    }
+    
+    if (!request.method || typeof request.method !== 'string') {
+      throw new Error('API request must have a valid method');
+    }
+    
     // In production, this would make actual API calls with rate limiting
     return { message: 'API call logged', request };
   }

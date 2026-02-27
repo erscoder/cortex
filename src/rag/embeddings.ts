@@ -15,10 +15,32 @@ export class OpenAIEmbeddings implements EmbeddingModel {
   private baseURL: string;
 
   constructor(config: OpenAIEmbeddingsConfig = {}) {
-    this.apiKey = config.apiKey || process.env.OPENAI_API_KEY || '';
-    this.model = config.model || 'text-embedding-3-small';
-    this.dimensions = config.dimensions || 1536;
-    this.baseURL = config.baseURL || 'https://api.openai.com/v1';
+    this.apiKey = this.resolveApiKey(config.apiKey);
+    this.model = this.resolveModel(config.model);
+    this.dimensions = this.resolveDimensions(config.dimensions);
+    this.baseURL = this.resolveBaseURL(config.baseURL);
+  }
+
+  // Extracted for testability - each method can be tested independently
+  private resolveApiKey(provided?: string): string {
+    if (provided) return provided;
+    const envKey = process.env.OPENAI_API_KEY;
+    return envKey || '';
+  }
+
+  private resolveModel(provided?: string): string {
+    if (provided) return provided;
+    return 'text-embedding-3-small';
+  }
+
+  private resolveDimensions(provided?: number): number {
+    if (provided && provided > 0) return provided;
+    return 1536;
+  }
+
+  private resolveBaseURL(provided?: string): string {
+    if (provided) return provided;
+    return 'https://api.openai.com/v1';
   }
 
   async embed(text: string): Promise<number[]> {
@@ -44,6 +66,7 @@ export class OpenAIEmbeddings implements EmbeddingModel {
       data: Array<{ embedding: number[] }>;
     };
 
+    // Return first embedding (embed returns single vector)
     return data.data[0]?.embedding || [];
   }
 
@@ -70,8 +93,8 @@ export class OpenAIEmbeddings implements EmbeddingModel {
       data: Array<{ embedding: number[] }>;
     };
 
-    // Return in order
-    return data.data.map((item) => item.embedding);
+    // Return in order - handle potential null embeddings
+    return data.data.map((item): number[] => item.embedding || []);
   }
 }
 
