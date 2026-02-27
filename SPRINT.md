@@ -16,13 +16,13 @@ Construir la base del framework con memoria funcional (short-term + long-term) y
 
 ## 🎯 Definition of Done (Global)
 
-- [ ] `npm run build` → 0 errores
-- [ ] `npm test` → todos pasan
-- [ ] Cobertura ≥ 90% (statements + lines) en archivos modificados
-- [ ] Sin `any` implícitos
-- [ ] JSDoc en clases y métodos públicos
-- [ ] Commit: `type(scope): description (COR-XX)`
-- [ ] Vector valida antes de avanzar
+- [x] `npm run build` → 0 errores
+- [x] `npm test` → todos pasan
+- [x] Cobertura ≥ 90% (statements + lines + branches + functions) en archivos modificados
+- [x] Sin `any` implícitos
+- [x] JSDoc en clases y métodos públicos
+- [x] Commit: `type(scope): description (COR-XX)`
+- [x] Vector valida antes de avanzar
 
 ---
 
@@ -33,14 +33,14 @@ El build tiene errores TS. Imports rotos, tipos `any` implícitos, null vs undef
 
 **Subtareas:**
 
-- [ ] **1.1** Fix import `reasoner.ts`: `'./types'` → `'./reasoning/types'`
-- [ ] **1.2** Tipar `steps` como `ReasoningStep[]` en `buildPrompt()` y `calculateConfidence()`
-- [ ] **1.3** `parseResponse()`: cambiar `null` → `undefined` (match optional fields)
-- [ ] **1.4** `pipeline.ts`: usar `SearchOptionsSchema.parse(options)` para defaults
-- [ ] **1.5** Verificar `AgentAction.requiresApproval` en todos los call sites
-- [ ] **1.6** `npm run build` → 0 errores
-- [ ] **1.7** Tests: `reasoner.test.ts` + `pipeline.test.ts` — coverage ≥ 90%
-- [ ] **1.8** Commit: `fix(build): resolve TypeScript errors (COR-1)`
+- [x] **1.1** Fix import `reasoner.ts`: `'./types'` → `'./reasoning/types'`
+- [x] **1.2** Tipar `steps` como `ReasoningStep[]` en `buildPrompt()` y `calculateConfidence()`
+- [x] **1.3** `parseResponse()`: cambiar `null` → `undefined` (match optional fields)
+- [x] **1.4** `pipeline.ts`: usar `SearchOptionsSchema.parse(options)` para defaults
+- [x] **1.5** Verificar `AgentAction.requiresApproval` en todos los call sites
+- [x] **1.6** `npm run build` → 0 errores
+- [x] **1.7** Tests: `reasoner.test.ts` + `pipeline.test.ts` — coverage ≥ 90%
+- [x] **1.8** Commit: `fix(build): resolve TypeScript errors (COR-1)`
 
 ---
 
@@ -51,11 +51,11 @@ Completar `src/memory/short-term.ts`. TTL configurable, SCAN en vez de KEYS, err
 
 **Subtareas:**
 
-- [ ] **2.1** Redis client factory `src/memory/redis-client.ts` (ioredis, retry, backoff)
-- [ ] **2.2** `RedisShortTermMemory` con TTL configurable (constructor: `{ redis, ttlSeconds?, prefix? }`)
-- [ ] **2.3** Métodos: `save(key,val,ttl?)`, `get(key)` (null si corrupto), `delete(key)`, `clear(sessionId)` (SCAN no KEYS), `exists(key)`, `ttl(key)`
-- [ ] **2.4** Tests con mock (NO Redis real): roundtrip, corrupto, clear por sesión, Redis caído
-- [ ] **2.5** Commit: `feat(memory): Redis short-term memory (COR-2)`
+- [x] **2.1** Redis client factory `src/memory/redis-client.ts` (ioredis, retry, backoff)
+- [x] **2.2** `RedisShortTermMemory` con TTL configurable (constructor: `{ redis, ttlSeconds?, prefix? }`)
+- [x] **2.3** Métodos: `save(key,val,ttl?)`, `get(key)` (null si corrupto), `delete(key)`, `clear(sessionId)` (SCAN no KEYS), `exists(key)`, `ttl(key)`
+- [x] **2.4** Tests con mock (NO Redis real): roundtrip, corrupto, clear por sesión, Redis caído
+- [x] **2.5** Commit: `feat(memory): Redis short-term memory (COR-2)`
 
 ---
 
@@ -66,11 +66,11 @@ Completar `src/memory/long-term.ts`. Migraciones, vector search, cleanup.
 
 **Subtareas:**
 
-- [ ] **3.1** Migración SQL `src/memory/migrations/001_create_memories.sql`: tabla `cortex_memories` con `vector(1536)`, indexes (ivfflat cosine), constraints
-- [ ] **3.2** `PostgresLongTermMemory` constructor: `{ pool, embeddingModel? }`. Sin embedding → fallback ILIKE
-- [ ] **3.3** Métodos: `save(memory)` (con embedding), `get(id)`, `search(query,opts)` (cosine similarity o ILIKE), `delete(id)`, `cleanup(olderThanDays)` (solo borra importance < 3)
-- [ ] **3.4** Tests con pg mock: CRUD, vector search mock, filtros, cleanup no borra importantes
-- [ ] **3.5** Commit: `feat(memory): PostgreSQL long-term memory with pgvector (COR-3)`
+- [x] **3.1** Migración SQL `src/memory/migrations/001_create_memories.sql`: tabla `cortex_memories` con `vector(1536)`, indexes (ivfflat cosine), constraints
+- [x] **3.2** `PostgresLongTermMemory` constructor: `{ pool, embeddingModel? }`. Sin embedding → fallback ILIKE
+- [x] **3.3** Métodos: `save(memory)` (con embedding), `get(id)`, `search(query,opts)` (cosine similarity o ILIKE), `delete(id)`, `cleanup(olderThanDays)` (solo borra importance < 3)
+- [x] **3.4** Tests con pg mock: CRUD, vector search mock, filtros, cleanup no borra importantes
+- [x] **3.5** Commit: `feat(memory): PostgreSQL long-term memory with pgvector (COR-3)`
 
 ---
 
@@ -81,13 +81,13 @@ Cache-through: Redis first, Postgres as source of truth. Implements `MemorySyste
 
 **Subtareas:**
 
-- [ ] **4.1** `src/memory/manager.ts`: constructor `{ shortTerm, longTerm, cacheTtl? }`
-- [ ] **4.2** `save()` → ambos stores. `get()` → Redis first, miss → Postgres + cache
-- [ ] **4.3** `search()` → Postgres (tiene embeddings), cache results 300s
-- [ ] **4.4** `delete()` → ambos. `clear()` → solo Redis
-- [ ] **4.5** Graceful degradation: Redis fail → log + continue Postgres only
-- [ ] **4.6** Tests: cache hit, cache miss, Redis fail, delete ambos
-- [ ] **4.7** Commit: `feat(memory): unified MemoryManager (COR-4)`
+- [x] **4.1** `src/memory/manager.ts`: constructor `{ shortTerm, longTerm, cacheTtl? }`
+- [x] **4.2** `save()` → ambos stores. `get()` → Redis first, miss → Postgres + cache
+- [x] **4.3** `search()` → Postgres (tiene embeddings), cache results 300s
+- [x] **4.4** `delete()` → ambos. `clear()` → solo Redis
+- [x] **4.5** Graceful degradation: Redis fail → log + continue Postgres only
+- [x] **4.6** Tests: cache hit, cache miss, Redis fail, delete ambos
+- [x] **4.7** Commit: `feat(memory): unified MemoryManager (COR-4)`
 
 ---
 
@@ -98,11 +98,11 @@ Crear embeddings, fix Weaviate client v3, mejorar pipeline.
 
 **Subtareas:**
 
-- [ ] **5.1** `src/rag/embeddings.ts`: `OpenAIEmbeddings` implements `EmbeddingModel`. `embed()` → ada-002 (1536 dims), `embedBatch()` hasta 100, retry en rate limits
-- [ ] **5.2** Fix `WeaviateVectorStore`: API v3 correcta (`client.data.creator()`, `client.graphql.get()`, `client.data.deleter()`)
-- [ ] **5.3** `HybridRAGPipeline`: parse options con Zod defaults, agregar `ingest(docs)`, relevance score en `buildContext()`
-- [ ] **5.4** Tests con mocks: embeddings dims, batch, VectorStore CRUD, pipeline e2e
-- [ ] **5.5** Commit: `feat(rag): RAG pipeline with embeddings and Weaviate (COR-5)`
+- [x] **5.1** `src/rag/embeddings.ts`: `OpenAIEmbeddings` implements `EmbeddingModel`. `embed()` → ada-002 (1536 dims), `embedBatch()` hasta 100, retry en rate limits
+- [x] **5.2** Fix `WeaviateVectorStore`: API v3 correcta (`client.data.creator()`, `client.graphql.get()`, `client.data.deleter()`)
+- [x] **5.3** `HybridRAGPipeline`: parse options con Zod defaults, agregar `ingest(docs)`, relevance score en `buildContext()`
+- [x] **5.4** Tests con mocks: embeddings dims, batch, VectorStore CRUD, pipeline e2e
+- [x] **5.5** Commit: `feat(rag): RAG pipeline with embeddings and Weaviate (COR-5)`
 
 ---
 
@@ -113,12 +113,12 @@ Integrar LLM real, mejorar prompts, detección inteligente de needsRag/needsActi
 
 **Subtareas:**
 
-- [ ] **6.1** `src/reasoning/llm-client.ts`: interface `LLMClient`, implementar `AnthropicClient` y `MiniMaxClient` (API keys de config openclaw)
-- [ ] **6.2** Mejorar `buildPrompt()`: system role, few-shot examples, JSON schema enforcement
-- [ ] **6.3** Mejorar `needsRag`/`needsAction`: pedir flags explícitos al LLM en response JSON (fallback a keyword scoring)
-- [ ] **6.4** Tipar todos los `any` restantes
-- [ ] **6.5** Tests: think() con LLM mock, sin LLM (fallback), parseResponse edge cases, risk assessment
-- [ ] **6.6** Commit: `feat(reasoning): chain-of-thought with LLM integration (COR-6)`
+- [x] **6.1** `src/reasoning/llm-client.ts`: interface `LLMClient`, implementar `AnthropicClient` y `MiniMaxClient` (API keys de config openclaw)
+- [x] **6.2** Mejorar `buildPrompt()`: system role, few-shot examples, JSON schema enforcement
+- [x] **6.3** Mejorar `needsRag`/`needsAction`: pedir flags explícitos al LLM en response JSON (fallback a keyword scoring)
+- [x] **6.4** Tipar todos los `any` restantes
+- [x] **6.5** Tests: think() con LLM mock, sin LLM (fallback), parseResponse edge cases, risk assessment
+- [x] **6.6** Commit: `feat(reasoning): chain-of-thought with LLM integration (COR-6)`
 
 ---
 
@@ -129,12 +129,12 @@ Ejecutor real de comandos con `child_process.execFile`, allowlist, logging.
 
 **Subtareas:**
 
-- [ ] **7.1** `executeCommand()` real: `execFile` (no `exec`), timeout configurable, maxBuffer 10MB
-- [ ] **7.2** `validate()` completo: allowlist check primero, blocked patterns, approval patterns retornan `needsApproval`
-- [ ] **7.3** `executeApiCall()`: fetch nativo, allowed domains, timeout
-- [ ] **7.4** Logging: timestamp + level + message en cada ejecución
-- [ ] **7.5** Tests: allowlist, blocked, injection attempts (`;`, `&&`, `|`), timeout
-- [ ] **7.6** Commit: `feat(sandbox): safe command execution (COR-7)`
+- [x] **7.1** `executeCommand()` real: `execFile` (no `exec`), timeout configurable, maxBuffer 10MB
+- [x] **7.2** `validate()` completo: allowlist check primero, blocked patterns, approval patterns retornan `needsApproval`
+- [x] **7.3** `executeApiCall()`: fetch nativo, allowed domains, timeout
+- [x] **7.4** Logging: timestamp + level + message en cada ejecución
+- [x] **7.5** Tests: allowlist, blocked, injection attempts (`;`, `&&`, `|`), timeout
+- [x] **7.6** Commit: `feat(sandbox): safe command execution (COR-7)`
 
 ---
 
@@ -145,12 +145,12 @@ Timeout automático, wait mechanism, pending queue.
 
 **Subtareas:**
 
-- [ ] **8.1** Timeout auto-reject: `setTimeout` + cleanup cuando excede `config.timeoutMs`
-- [ ] **8.2** `waitForApproval(requestId, timeoutMs)`: Promise con EventEmitter (no polling)
-- [ ] **8.3** `getPendingRequests()`: array de requests pendientes
-- [ ] **8.4** `modifyAndApprove(requestId, modifications)`: aprobar con cambios
-- [ ] **8.5** Tests: auto-approve, approve flow, reject flow, timeout, wait resolves
-- [ ] **8.6** Commit: `feat(hitl): approval system with timeout (COR-8)`
+- [x] **8.1** Timeout auto-reject: `setTimeout` + cleanup cuando excede `config.timeoutMs`
+- [x] **8.2** `waitForApproval(requestId, timeoutMs)`: Promise con EventEmitter (no polling)
+- [x] **8.3** `getPendingRequests()`: array de requests pendientes
+- [x] **8.4** `modifyAndApprove(requestId, modifications)`: aprobar con cambios
+- [x] **8.5** Tests: auto-approve, approve flow, reject flow, timeout, wait resolves
+- [x] **8.6** Commit: `feat(hitl): approval system with timeout (COR-8)`
 
 ---
 
@@ -176,10 +176,10 @@ Tracking básico de experimentos y métricas.
 
 **Subtareas:**
 
-- [ ] **10.1** Completar `MLflowTracker`: createExperiment, logMetrics, registerModel
-- [ ] **10.2** Production metrics logging
-- [ ] **10.3** Tests ≥ 90%
-- [ ] **10.4** Commit: `feat(mlops): experiment tracking (COR-10)`
+- [x] **10.1** Completar `MLflowTracker`: createExperiment, logMetrics, registerModel
+- [x] **10.2** Production metrics logging
+- [x] **10.3** Tests ≥ 90%
+- [x] **10.4** Commit: `feat(mlops): experiment tracking (COR-10)`
 
 ---
 
@@ -190,12 +190,12 @@ Automatizar infra y validación continua.
 
 **Subtareas:**
 
-- [ ] **11.1** `docker-compose.yml`: Redis + PostgreSQL (pgvector) + Weaviate + health checks
-- [ ] **11.2** `scripts/setup-dev.sh`: docker-compose up, wait health, run migrations
-- [ ] **11.3** GitHub Actions: build → typecheck → lint → test → coverage gate (fail < 90%)
-- [ ] **11.4** Pre-commit hooks (husky + lint-staged)
-- [ ] **11.5** Integration smoke test
-- [ ] **11.6** Commit: `feat(ci): CI/CD pipeline with coverage gates (COR-11)`
+- [x] **11.1** `docker-compose.yml`: Redis + PostgreSQL (pgvector) + Weaviate + health checks
+- [x] **11.2** `scripts/setup-dev.sh`: docker-compose up, wait health, run migrations
+- [x] **11.3** GitHub Actions: build → typecheck → lint → test → coverage gate (fail < 90%)
+- [x] **11.4** Pre-commit hooks (husky + lint-staged)
+- [x] **11.5** Integration smoke test
+- [x] **11.6** Commit: `feat(ci): CI/CD pipeline with coverage gates (COR-11)`
 
 ---
 
