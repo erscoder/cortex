@@ -230,7 +230,4 @@ Automatizar infra y validación continua.
 
 ## 🚀 Orden de Ejecución
 
-**Día 1-2:** COR-1 → COR-2 → COR-3 (+ COR-11 en paralelo por Vega)
-**Día 3:** COR-4 → COR-5 + COR-6 (paralelos)
-**Día 4:** COR-7 + COR-8 (paralelos)
-**Día 5-6:** COR-9 (integración) + COR-10
+**Día 1 COR-1 → COR-2 → COR-3 (+ COR-11 en paralelo por Vega) COR-4 → COR-5 + COR-6 (paralelos) COR-7 + COR-8 (paralelos)  COR-9 (integración) + COR-10

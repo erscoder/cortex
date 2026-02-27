@@ -6,10 +6,16 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
+    "typecheck": "tsc --noEmit",
     "test": "jest",
     "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:integration": "jest --testPathPattern=tests/integration",
     "lint": "eslint src --ext .ts",
-    "dev": "ts-node src/index.ts"
+    "lint:fix": "eslint src --ext .ts --fix",
+    "dev": "ts-node src/index.ts",
+    "setup": "bash scripts/setup-dev.sh",
+    "health": "bash scripts/health-check.sh"
   },
   "keywords": [
     "agent",
