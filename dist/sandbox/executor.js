@@ -23,7 +23,7 @@ class SafeSandbox {
                 };
             }
             // Log execution
-            logs?.push({
+            logs.push({
                 timestamp: new Date(),
                 level: 'info',
                 message: `Executing action: ${action.type}`,
@@ -40,7 +40,7 @@ class SafeSandbox {
                 default:
                     output = { message: 'Action type not implemented' };
             }
-            logs?.push({
+            logs.push({
                 timestamp: new Date(),
                 level: 'info',
                 message: `Action completed successfully`,
@@ -53,7 +53,7 @@ class SafeSandbox {
             };
         }
         catch (error) {
-            logs?.push({
+            logs.push({
                 timestamp: new Date(),
                 level: 'error',
                 message: error instanceof Error ? error.message : 'Unknown error',
@@ -83,11 +83,28 @@ class SafeSandbox {
         return { valid: true };
     }
     async executeCommand(command) {
+        // Validate command is not empty
+        if (!command || typeof command !== 'string') {
+            throw new Error('Command must be a non-empty string');
+        }
+        // Check for command length limits
+        if (command.length > 10000) {
+            throw new Error('Command exceeds maximum length');
+        }
         // In production, this would use Docker or a proper sandbox
-        // For now, return a placeholder
         return { message: 'Command execution requires Docker sandbox', command };
     }
     async executeApiCall(request) {
+        // Validate request structure
+        if (!request || typeof request !== 'object') {
+            throw new Error('API request must be an object');
+        }
+        if (!request.url || typeof request.url !== 'string') {
+            throw new Error('API request must have a valid URL');
+        }
+        if (!request.method || typeof request.method !== 'string') {
+            throw new Error('API request must have a valid method');
+        }
         // In production, this would make actual API calls with rate limiting
         return { message: 'API call logged', request };
     }

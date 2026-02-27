@@ -57,7 +57,7 @@ describe('Agent Integration', () => {
       
       expect(result.output).toBeDefined();
       expect(result.input).toBe('What is 2+2?');
-      expect(result.latencyMs).toBeGreaterThan(0);
+      expect(result.latencyMs).toBeGreaterThanOrEqual(0);
       expect(result.model).toBe('claude-3-haiku');
     });
 

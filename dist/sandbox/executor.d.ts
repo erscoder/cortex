@@ -7,7 +7,11 @@ export declare class SafeSandbox implements SandboxExecutor {
         valid: boolean;
         reason?: string;
     };
-    private executeCommand;
-    private executeApiCall;
+    executeCommand(command: string): Promise<unknown>;
+    executeApiCall(request: {
+        url: string;
+        method: string;
+        body?: unknown;
+    }): Promise<unknown>;
 }
 //# sourceMappingURL=executor.d.ts.map
