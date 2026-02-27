@@ -1,0 +1,96 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.SafeSandbox = void 0;
+// Sandbox Executor - Safe command execution
+const types_1 = require("./types");
+class SafeSandbox {
+    config;
+    constructor(config = {}) {
+        this.config = types_1.SandboxConfigSchema.parse(config);
+    }
+    async execute(action) {
+        const startTime = Date.now();
+        const logs = [];
+        try {
+            // Validate action first
+            const validation = this.validate(action);
+            if (!validation.valid) {
+                return {
+                    success: false,
+                    error: validation.reason || 'Action validation failed',
+                    logs,
+                    durationMs: Date.now() - startTime,
+                };
+            }
+            // Log execution
+            logs?.push({
+                timestamp: new Date(),
+                level: 'info',
+                message: `Executing action: ${action.type}`,
+            });
+            // Execute based on action type
+            let output;
+            switch (action.type) {
+                case 'command':
+                    output = await this.executeCommand(action.payload);
+                    break;
+                case 'api':
+                    output = await this.executeApiCall(action.payload);
+                    break;
+                default:
+                    output = { message: 'Action type not implemented' };
+            }
+            logs?.push({
+                timestamp: new Date(),
+                level: 'info',
+                message: `Action completed successfully`,
+            });
+            return {
+                success: true,
+                output,
+                logs,
+                durationMs: Date.now() - startTime,
+            };
+        }
+        catch (error) {
+            logs?.push({
+                timestamp: new Date(),
+                level: 'error',
+                message: error instanceof Error ? error.message : 'Unknown error',
+            });
+            return {
+                success: false,
+                error: error instanceof Error ? error.message : 'Unknown error',
+                logs,
+                durationMs: Date.now() - startTime,
+            };
+        }
+    }
+    validate(action) {
+        const payloadStr = JSON.stringify(action.payload);
+        // Check blocked patterns
+        for (const pattern of this.config.blockedPatterns) {
+            if (new RegExp(pattern, 'i').test(payloadStr)) {
+                return { valid: false, reason: `Blocked pattern detected: ${pattern}` };
+            }
+        }
+        // Check if approval required
+        for (const pattern of this.config.requireApprovalPatterns) {
+            if (new RegExp(pattern, 'i').test(payloadStr)) {
+                return { valid: false, reason: `Action requires human approval: ${pattern}` };
+            }
+        }
+        return { valid: true };
+    }
+    async executeCommand(command) {
+        // In production, this would use Docker or a proper sandbox
+        // For now, return a placeholder
+        return { message: 'Command execution requires Docker sandbox', command };
+    }
+    async executeApiCall(request) {
+        // In production, this would make actual API calls with rate limiting
+        return { message: 'API call logged', request };
+    }
+}
+exports.SafeSandbox = SafeSandbox;
+//# sourceMappingURL=executor.js.map
