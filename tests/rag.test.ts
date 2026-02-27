@@ -153,7 +153,22 @@ describe('WeaviateVectorStore', () => {
         }),
       },
     };
+  });
 
+  describe('constructor', () => {
+    it('should use custom class name', () => {
+      store = new WeaviateVectorStore(mockClient, 'CustomClass');
+      expect(store).toBeDefined();
+    });
+
+    it('should use default class name (covers default param branch)', () => {
+      store = new WeaviateVectorStore(mockClient);
+      expect(store).toBeDefined();
+    });
+  });
+
+  beforeEach(() => {
+    // Reset store for non-constructor tests
     store = new WeaviateVectorStore(mockClient, 'TestClass');
   });
 
@@ -176,6 +191,36 @@ describe('WeaviateVectorStore', () => {
           }),
         ]),
       });
+    });
+
+    it('should add documents without metadata (covers || {} branch)', async () => {
+      const docs = [
+        { id: '2', content: 'Doc without metadata' },
+      ];
+
+      await store.add(docs);
+
+      expect(mockClient.objects.classifier().objects.create).toHaveBeenCalledWith({
+        objects: expect.arrayContaining([
+          expect.objectContaining({
+            class: 'TestClass',
+            id: '2',
+            properties: expect.objectContaining({
+              content: 'Doc without metadata',
+            }),
+          }),
+        ]),
+      });
+    });
+
+    it('should add documents with null metadata (covers || {} branch)', async () => {
+      const docs = [
+        { id: '3', content: 'Doc', metadata: null as any },
+      ];
+
+      await store.add(docs);
+
+      expect(mockClient.objects.classifier().objects.create).toHaveBeenCalled();
     });
   });
 

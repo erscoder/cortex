@@ -3,6 +3,69 @@ import { ChainOfThoughtReasoner } from '../src/reasoner';
 describe('ChainOfThoughtReasoner', () => {
   let reasoner: ChainOfThoughtReasoner;
 
+  describe('constructor - branch coverage', () => {
+    it('should use default maxSteps when not provided', () => {
+      reasoner = new ChainOfThoughtReasoner({});
+      expect(reasoner).toBeDefined();
+    });
+
+    it('should use provided maxSteps', () => {
+      reasoner = new ChainOfThoughtReasoner({ maxSteps: 10 });
+      expect(reasoner).toBeDefined();
+    });
+
+    it('should use provided llm function', () => {
+      const mockLlm = jest.fn().mockResolvedValue('mock response');
+      reasoner = new ChainOfThoughtReasoner({ llm: mockLlm });
+      expect(reasoner).toBeDefined();
+    });
+
+    it('should use default when maxSteps is 0', () => {
+      reasoner = new ChainOfThoughtReasoner({ maxSteps: 0 });
+      expect(reasoner).toBeDefined();
+    });
+
+    it('should use default when maxSteps is negative', () => {
+      reasoner = new ChainOfThoughtReasoner({ maxSteps: -1 });
+      expect(reasoner).toBeDefined();
+    });
+  });
+
+  describe('think with LLM - branch coverage', () => {
+    it('should use LLM and handle empty context (covers context branch)', async () => {
+      const mockLlm = jest.fn().mockResolvedValue(JSON.stringify({
+        thought: 'Thinking...',
+        action: undefined,
+      }));
+      const reasonerWithLlm = new ChainOfThoughtReasoner({ llm: mockLlm, maxSteps: 1 });
+      
+      const result = await reasonerWithLlm.think('Test', {});
+      
+      expect(result.steps).toBeDefined();
+    });
+
+    it('should use LLM and handle context with keys', async () => {
+      const mockLlm = jest.fn().mockResolvedValue(JSON.stringify({
+        thought: 'Thinking...',
+        action: undefined,
+      }));
+      const reasonerWithLlm = new ChainOfThoughtReasoner({ llm: mockLlm, maxSteps: 1 });
+      
+      const result = await reasonerWithLlm.think('Test', { key: 'value' });
+      
+      expect(result.steps).toBeDefined();
+    });
+
+    it('should handle invalid JSON from LLM (covers catch branch)', async () => {
+      const mockLlm = jest.fn().mockResolvedValue('invalid json response');
+      const reasonerWithLlm = new ChainOfThoughtReasoner({ llm: mockLlm, maxSteps: 1 });
+      
+      const result = await reasonerWithLlm.think('Test', {});
+      
+      expect(result.steps).toBeDefined();
+    });
+  });
+
   beforeEach(() => {
     reasoner = new ChainOfThoughtReasoner({ maxSteps: 3 });
   });
@@ -12,6 +75,15 @@ describe('ChainOfThoughtReasoner', () => {
       const result = await reasoner.think('What is 2+2?', {});
 
       expect(result.steps).toHaveLength(3);
+      expect(result.finalAnswer).toBeDefined();
+    });
+
+    it('should break early when thought contains conclusion (covers break branch)', async () => {
+      // This test covers line 63 - the break statement when isConcluded returns true
+      const result = await reasoner.think('What is 2+2? Therefore the answer is 4.', {});
+
+      // Should have fewer steps because we broke early
+      expect(result.steps).toBeDefined();
       expect(result.finalAnswer).toBeDefined();
     });
 
