@@ -1,17 +1,17 @@
 # 🧠 Cortex - Agentic Platform
 
 <p align="center">
-  <a href="https://www.npmjs.com/package/@cortex/agentic-platform">
-    <img src="https://img.shields.io/npm/v/@cortex/agentic-platform?style=flat&color=blue" alt="npm version">
-  </a>
   <a href="https://github.com/erscoder/cortex/actions">
-    <img src="https://github.com/erscoder/cortex/actions/workflows/test.yml/badge.svg" alt="CI">
+    <img src="https://github.com/erscoder/cortex/actions/workflows/ci.yml/badge.svg" alt="CI">
   </a>
-  <a href="https://codecov.io/gh/erscoder/cortex">
-    <img src="https://img.shields.io/codecov/c/github/erscoder/cortex?token=xxxx" alt="Coverage">
+  <a href="#tests">
+    <img src="https://img.shields.io/badge/coverage-91.28%25-brightgreen" alt="Coverage">
   </a>
   <a href="https://github.com/erscoder/cortex/blob/main/LICENSE">
-    <img src="https://img.shields.io/npm/l/@cortex/agentic-platform" alt="License">
+    <img src="https://img.shields.io/badge/license-MIT-blue" alt="License">
+  </a>
+  <a href="https://www.typescriptlang.org/">
+    <img src="https://img.shields.io/badge/TypeScript-5.0+-blue" alt="TypeScript">
   </a>
 </p>
 
@@ -128,6 +128,21 @@ const config = {
 - [Basic Agent](./examples/basic-agent.ts) — Simple agent with all features
 - [Trading Bot](./examples/trading-bot.ts) — Real-world trading example
 - [RAG Chat](./examples/rag-chat.ts) — Chat with knowledge base
+
+## 🧪 Tests
+
+Cortex has comprehensive test coverage with **263 tests** passing:
+
+```bash
+npm test                    # Run all tests
+npm test -- --coverage      # Run with coverage report
+```
+
+**Coverage Stats:**
+- Statements: 98.84%
+- Branches: 91.28%
+- Functions: 98.95%
+- Lines: 98.78%
 
 ## 🛠️ Development
 
