@@ -47,5 +47,5 @@ data/
 .jest-cache/
 
 # Internal sprint planning (not for public repos)
-SPRINT.md
-SPRINT_PLAN.md
+SPRINT*.md
+
