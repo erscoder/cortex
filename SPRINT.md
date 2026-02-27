@@ -5,6 +5,43 @@
 ### Objetivo
 Construir la base del framework con memoria funcional (short-term + long-term) y el agente base integrando todo.
 
+### 🎯 P0.PUBLICAR COMO NPM PÚBLICO (NUEVO!)
+**Objetivo:** Publicar en GitHub para ganar estrellas y visibilidad.
+
+**Tareas:**
+- [ ] **P0.1** Crear README.md detallado con ejemplos, badges, instalación
+- [ ] **P0.2** Configurar package.json: keywords, repo, bugs, license
+- [ ] **P0.3** Añadir CONTRIBUTING.md
+- [ ] **P0.4** Hacer repo público en GitHub
+- [ ] **P0.5** Publicar a npm: `npm publish --access public`
+- [ ] **P0.6** Anunciar en Twitter/LinkedIn
+
+---
+
+### 🐛 Bugs Encontrados (Revisión Opus 4.6)
+**Owner:** Codex | **Prio:** P0
+
+| Bug | Archivo | Descripción |
+|-----|---------|-------------|
+| B1 | `orchestrator/agent.ts` | `reasoningResult` puede ser undefined cuando se accede a `.needsRag` y `.actions` |
+| B2 | `orchestrator/agent.ts` | `generateResponse` se llama aunque `reasoning` esté deshabilitado (no hay contexto) |
+| B3 | `rag/pipeline.ts` | `buildContext` no verifica si `result.content` es undefined |
+| B4 | `memory/short-term.ts` | Import de Redis puede fallar - verificar versión de ioredis |
+| B5 | `hitl/manager.ts` | Falta implementación de `waitForApproval` - solo crea request pero no espera |
+| B6 | `reasoner.ts` | `actions` tipado como `any[]` - debería tener tipo explícito |
+| B7 | `sandbox/executor.ts` | Validación de regex patterns puede fallar con patrones inválidos |
+
+**Subtareas:**
+- [ ] **B1.1** Fix: verificar `reasoningResult` existe antes de acceder a propiedades
+- [ ] **B1.2** Fix: si `reasoning` deshabilitado, pasar contexto vacío a `generateResponse`
+- [ ] **B2.1** Fix: agregar `result.content ? result.content.length : 0` en buildContext
+- [ ] **B3.1** Fix: verificar import de ioredis y tipo de export
+- [ ] **B4.1** Fix: implementar `waitForApproval` con Promise + timeout
+- [ ] **B5.1** Fix: tipar `actions` como `AgentAction[]`
+- [ ] **B6.1** Fix: try-catch en regex validation
+
+---
+
 ### ⚠️ Reglas del Sprint
 - **Tests obligatorios en CADA tarea** — cobertura mínima **90%** (statements + lines)
 - **No se avanza a la siguiente tarea sin tests de la actual**
