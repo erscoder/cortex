@@ -78,7 +78,7 @@ export class Agent {
     
     try {
       // Step 1: Load context from memory if enabled
-      let context = { ...validatedInput.context };
+      const context = { ...validatedInput.context };
       
       if (this.config.memory && this.memory) {
         const relevantMemories = await this.memory.search(

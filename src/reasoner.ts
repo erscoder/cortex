@@ -83,7 +83,7 @@ let currentProblem = problem;
     };
   }
   
-  private buildPrompt(problem: string, context: Record<string, unknown>, steps: any[]): string {
+  private buildPrompt(problem: string, context: Record<string, unknown>, steps: ReasoningStep[]): string {
     const contextStr = Object.keys(context).length > 0 
       ? `\nContext: ${JSON.stringify(context)}` 
       : '';
@@ -131,7 +131,7 @@ Respond in JSON format:
     return templates[step % templates.length];
   }
   
-  private calculateConfidence(steps: any[]): number {
+  private calculateConfidence(steps: ReasoningStep[]): number {
     if (steps.length === 0) return 0.5;
     // Confidence increases with more reasoning steps, capped at 0.9
     return Math.min(0.5 + steps.length * 0.1, 0.9);
