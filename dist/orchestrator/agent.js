@@ -58,7 +58,7 @@ class Agent {
         this.state.currentTask = validatedInput;
         try {
             // Step 1: Load context from memory if enabled
-            let context = { ...validatedInput.context };
+            const context = { ...validatedInput.context };
             if (this.config.memory && this.memory) {
                 const relevantMemories = await this.memory.search(validatedInput.input, { limit: 5 });
                 context.relevantMemories = relevantMemories;

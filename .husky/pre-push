@@ -1,0 +1,40 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+echo "🔍 Running pre-push validation..."
+
+# Build check
+echo "1️⃣ Build check..."
+npm run build || {
+  echo "❌ Build failed. Fix errors before pushing."
+  exit 1
+}
+
+# Type check
+echo "2️⃣ Type check..."
+npm run typecheck || {
+  echo "❌ Type check failed. Fix errors before pushing."
+  exit 1
+}
+
+# Lint check
+echo "3️⃣ Lint check..."
+npm run lint || {
+  echo "⚠️ Lint warnings found (continuing)..."
+}
+
+# Tests
+echo "4️⃣ Running tests..."
+npm test -- --testPathIgnorePatterns=integration || {
+  echo "❌ Tests failed. Fix failing tests before pushing."
+  exit 1
+}
+
+# Coverage check
+echo "5️⃣ Coverage check..."
+npm test -- --testPathIgnorePatterns=integration --coverage --silent || {
+  echo "❌ Coverage below threshold. Add tests before pushing."
+  exit 1
+}
+
+echo "✅ All pre-push checks passed. Pushing..."

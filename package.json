@@ -5,6 +5,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
+    "prepare": "husky install || true",
     "build": "tsc",
     "typecheck": "tsc --noEmit",
     "test": "jest",
@@ -15,7 +16,8 @@
     "lint:fix": "eslint src --ext .ts --fix",
     "dev": "ts-node src/index.ts",
     "setup": "bash scripts/setup-dev.sh",
-    "health": "bash scripts/health-check.sh"
+    "health": "bash scripts/health-check.sh",
+    "validate": "npm run build && npm run typecheck && npm run lint && npm test -- --testPathIgnorePatterns=integration --coverage"
   },
   "keywords": [
     "agent",
@@ -53,6 +55,7 @@
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",
     "eslint": "^8.0.0",
+    "husky": "^9.1.7",
     "jest": "^29.0.0",
     "ts-jest": "^29.4.6",
     "typescript": "^5.0.0"
