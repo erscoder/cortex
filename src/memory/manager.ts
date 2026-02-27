@@ -1,7 +1,7 @@
 // Unified Memory Manager - Combines Short-Term and Long-Term Memory
 import { RedisShortTermMemory } from './short-term';
 import { PostgresLongTermMemory } from './long-term';
-import { Memory, MemorySearchOptions, ShortTermMemory, LongTermMemory } from './types';
+import { Memory, MemorySearchOptions } from './types';
 
 export interface MemoryManagerConfig {
   shortTerm: {
@@ -17,10 +17,24 @@ export interface MemoryManagerConfig {
     user?: string;
     password?: string;
   };
-  cacheTTL?: number; // How long to cache long-term results in short-term
+  cacheTTL?: number;
 }
 
-export class MemoryManager implements ShortTermMemory, LongTermMemory {
+export interface MemoryManagerInterface {
+  remember(content: string, type: Memory['type'], options?: {
+    agentId?: string;
+    importance?: number;
+    metadata?: Record<string, unknown>;
+    embedding?: number[];
+  }): Promise<Memory>;
+  
+  recall(query: string, options?: MemorySearchOptions): Promise<Memory[]>;
+  forget(memoryId: string): Promise<void>;
+  getRecent(agentId?: string, limit?: number): Promise<Memory[]>;
+  disconnect(): Promise<void>;
+}
+
+export class MemoryManager implements MemoryManagerInterface {
   private shortTerm: RedisShortTermMemory;
   private longTerm: PostgresLongTermMemory;
   private cacheTTL: number;
@@ -30,64 +44,6 @@ export class MemoryManager implements ShortTermMemory, LongTermMemory {
     this.longTerm = new PostgresLongTermMemory(config.longTerm);
     this.cacheTTL = config.cacheTTL || 3600;
   }
-
-  // ========== Short-Term Memory Interface ==========
-  
-  async save(key: string, value: unknown, ttl?: number): Promise<void> {
-    await this.shortTerm.save(key, value, ttl);
-  }
-
-  async get<T = unknown>(key: string): Promise<T | null> {
-    return this.shortTerm.get<T>(key);
-  }
-
-  async delete(key: string): Promise<void> {
-    await this.shortTerm.delete(key);
-  }
-
-  async clear(sessionId: string): Promise<void> {
-    await this.shortTerm.clear(sessionId);
-  }
-
-  // ========== Long-Term Memory Interface ==========
-
-  async saveMemory(memory: Omit<Memory, 'id' | 'createdAt'>): Promise<Memory> {
-    const saved = await this.longTerm.save(memory);
-    
-    // Also cache in short-term for fast retrieval
-    const cacheKey = `memory:${saved.id}`;
-    await this.shortTerm.save(cacheKey, saved, this.cacheTTL);
-    
-    return saved;
-  }
-
-  async searchMemories(query: string, options?: MemorySearchOptions): Promise<Memory[]> {
-    // Check short-term cache first for recent searches
-    const cacheKey = `search:${query}:${JSON.stringify(options)}`;
-    const cached = await this.shortTerm.get<Memory[]>(cacheKey);
-    
-    if (cached) {
-      return cached;
-    }
-
-    // Search long-term
-    const results = await this.longTerm.search(query, options);
-
-    // Cache results
-    if (results.length > 0) {
-      await this.shortTerm.save(cacheKey, results, 300); // 5 min cache for searches
-    }
-
-    return results;
-  }
-
-  async deleteMemory(id: string): Promise<void> {
-    // Delete from both stores
-    await this.longTerm.delete(id);
-    await this.shortTerm.delete(`memory:${id}`);
-  }
-
-  // ========== High-Level Methods ==========
 
   /**
    * Remember - stores in both short-term and long-term
@@ -102,7 +58,7 @@ export class MemoryManager implements ShortTermMemory, LongTermMemory {
       embedding?: number[];
     }
   ): Promise<Memory> {
-    const memory = await this.saveMemory({
+    const memory = await this.longTerm.save({
       type,
       content,
       agentId: options?.agentId,
@@ -111,7 +67,11 @@ export class MemoryManager implements ShortTermMemory, LongTermMemory {
       embedding: options?.embedding,
     });
 
-    // Also store in short-term for immediate access
+    // Cache in short-term for fast retrieval
+    const cacheKey = `memory:${memory.id}`;
+    await this.shortTerm.save(cacheKey, memory, this.cacheTTL);
+
+    // Also store in recent list
     const sessionKey = `session:${options?.agentId || 'default'}:recent`;
     const recent = await this.shortTerm.get<Memory[]>(sessionKey) || [];
     recent.unshift(memory);
@@ -124,14 +84,31 @@ export class MemoryManager implements ShortTermMemory, LongTermMemory {
    * Recall - searches long-term and caches results
    */
   async recall(query: string, options?: MemorySearchOptions): Promise<Memory[]> {
-    return this.searchMemories(query, options);
+    // Check short-term cache first
+    const cacheKey = `search:${query}:${JSON.stringify(options)}`;
+    const cached = await this.shortTerm.get<Memory[]>(cacheKey);
+    
+    if (cached) {
+      return cached;
+    }
+
+    // Search long-term
+    const results = await this.longTerm.search(query, options);
+
+    // Cache results
+    if (results.length > 0) {
+      await this.shortTerm.save(cacheKey, results, 300);
+    }
+
+    return results;
   }
 
   /**
    * Forget - removes from both stores
    */
   async forget(memoryId: string): Promise<void> {
-    await this.deleteMemory(memoryId);
+    await this.longTerm.delete(memoryId);
+    await this.shortTerm.delete(`memory:${memoryId}`);
   }
 
   /**
@@ -146,16 +123,8 @@ export class MemoryManager implements ShortTermMemory, LongTermMemory {
     }
 
     // Fallback to long-term search
-    const memories = await this.longTerm.search('', {
-      agentId,
-      limit,
-    });
-
+    const memories = await this.longTerm.search('', { agentId, limit });
     return memories;
-  }
-
-  async connect(): Promise<void> {
-    // Initialize Redis connection if needed
   }
 
   async disconnect(): Promise<void> {
