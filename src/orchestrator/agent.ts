@@ -95,7 +95,7 @@ export class Agent {
         reasoningResult = await this.reasoner.think(validatedInput.input, context);
         
         // Step 3: RAG search if needed
-        if (reasoningResult.needsRag && this.rag) {
+        if (reasoningResult?.needsRag && this.rag) {
           this.state.status = AgentStatus.SEARCHING;
           const searchResults = await this.rag.search(reasoningResult.ragQuery!);
           context.searchResults = searchResults;
@@ -103,7 +103,11 @@ export class Agent {
       }
       
       // Step 4: Generate response (placeholder - needs LLM integration)
-      const output = await this.generateResponse(validatedInput.input, context);
+      // Pass reasoning context if available, otherwise use empty context
+      const reasoningContext = reasoningResult 
+        ? { ...context, reasoning: reasoningResult }
+        : context;
+      const output = await this.generateResponse(validatedInput.input, reasoningContext);
       
       // Step 5: Execute actions if any
       const actions = [];

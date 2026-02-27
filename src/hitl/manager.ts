@@ -61,6 +61,44 @@ export class HITLManager implements HumanInTheLoop {
     return this.pendingRequests.get(requestId) || null;
   }
   
+  // Wait for approval with timeout
+  async waitForApproval(
+    action: { type: string; payload: unknown; risk: 'low' | 'medium' | 'high' },
+    context?: Record<string, unknown>,
+    timeoutMs?: number
+  ): Promise<ApprovalRequest> {
+    const request = await this.requestApproval(action, context);
+    
+    // If already approved/rejected, return immediately
+    if (request.status !== 'pending') {
+      return request;
+    }
+    
+    const timeout = timeoutMs || this.config.timeoutMs;
+    const startTime = Date.now();
+    
+    // Poll for approval status
+    while (Date.now() - startTime < timeout) {
+      const currentRequest = this.pendingRequests.get(request.id);
+      if (!currentRequest || currentRequest.status !== 'pending') {
+        return currentRequest || request;
+      }
+      
+      // Wait 1 second before next poll
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+    
+    // Timeout - auto-reject
+    const timedOutRequest = this.pendingRequests.get(request.id);
+    if (timedOutRequest && timedOutRequest.status === 'pending') {
+      timedOutRequest.status = 'rejected';
+      timedOutRequest.response = 'Timeout: No response received';
+      timedOutRequest.respondedAt = new Date();
+    }
+    
+    return timedOutRequest || request;
+  }
+  
   async approve(requestId: string, response?: string): Promise<void> {
     const request = this.pendingRequests.get(requestId);
     if (!request) {

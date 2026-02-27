@@ -37,6 +37,8 @@ export class HybridRAGPipeline implements RAGPipeline {
     const tokensPerChar = 0.25; // rough estimate
     
     for (const result of results) {
+      if (!result.content) continue; // Skip if content is undefined/null
+      
       const resultTokens = result.content.length * tokensPerChar;
       if (totalTokens + resultTokens > maxTokens) break;
       

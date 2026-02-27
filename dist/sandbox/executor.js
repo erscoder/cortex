@@ -70,14 +70,26 @@ class SafeSandbox {
         const payloadStr = JSON.stringify(action.payload);
         // Check blocked patterns
         for (const pattern of this.config.blockedPatterns) {
-            if (new RegExp(pattern, 'i').test(payloadStr)) {
-                return { valid: false, reason: `Blocked pattern detected: ${pattern}` };
+            try {
+                if (new RegExp(pattern, 'i').test(payloadStr)) {
+                    return { valid: false, reason: `Blocked pattern detected: ${pattern}` };
+                }
+            }
+            catch {
+                // Invalid regex pattern - skip this check
+                console.warn(`Invalid regex pattern skipped: ${pattern}`);
             }
         }
         // Check if approval required
         for (const pattern of this.config.requireApprovalPatterns) {
-            if (new RegExp(pattern, 'i').test(payloadStr)) {
-                return { valid: false, reason: `Action requires human approval: ${pattern}` };
+            try {
+                if (new RegExp(pattern, 'i').test(payloadStr)) {
+                    return { valid: false, reason: `Action requires human approval: ${pattern}` };
+                }
+            }
+            catch {
+                // Invalid regex pattern - skip this check
+                console.warn(`Invalid regex pattern skipped: ${pattern}`);
             }
         }
         return { valid: true };

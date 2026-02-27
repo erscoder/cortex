@@ -12,10 +12,16 @@ export class ChainOfThoughtReasoner implements Reasoner {
   
   async think(problem: string, context: Record<string, unknown>): Promise<ReasoningResult> {
     const steps: ReasoningStep[] = [];
-    let currentProblem = problem;
+    interface AgentAction {
+  type: string;
+  payload: unknown;
+  risk: 'low' | 'medium' | 'high';
+}
+
+let currentProblem = problem;
     let needsRag = false;
     let ragQuery = '';
-    const actions: any[] = [];
+    const actions: AgentAction[] = [];
     
     for (let i = 0; i < this.maxSteps; i++) {
       // Generate thought using LLM if available, otherwise use simple heuristics

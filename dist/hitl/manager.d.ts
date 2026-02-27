@@ -11,6 +11,11 @@ export declare class HITLManager implements HumanInTheLoop {
         risk: 'low' | 'medium' | 'high';
     }, context?: Record<string, unknown>): Promise<ApprovalRequest>;
     getApprovalStatus(requestId: string): Promise<ApprovalRequest | null>;
+    waitForApproval(action: {
+        type: string;
+        payload: unknown;
+        risk: 'low' | 'medium' | 'high';
+    }, context?: Record<string, unknown>, timeoutMs?: number): Promise<ApprovalRequest>;
     approve(requestId: string, response?: string): Promise<void>;
     reject(requestId: string, reason: string): Promise<void>;
     private autoApprove;
