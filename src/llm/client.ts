@@ -3,7 +3,7 @@ import { ReasonerConfig } from '../reasoning/types';
 
 export interface LLMConfig {
   provider: 'anthropic' | 'minimax';
-  apiKey?: string;
+  apiKey: string;  // Required - no fallback to env
   model?: string;
   temperature?: number;
   maxTokens?: number;
@@ -23,9 +23,18 @@ export class LLMClient {
   private baseURL: string;
 
   constructor(config: LLMConfig) {
+    if (!config.apiKey) {
+      throw new Error(`API key is required. Pass it explicitly in the config:
+        
+new LLMClient({
+  provider: '${config.provider}',
+  apiKey: 'your-api-key-here'
+})`);
+    }
+
     this.config = {
       provider: config.provider || 'anthropic',
-      apiKey: config.apiKey || process.env.ANTHROPIC_API_KEY || process.env.MINIMAX_API_KEY || '',
+      apiKey: config.apiKey,
       model: config.model || 'claude-3-haiku-20240307',
       temperature: config.temperature ?? 0.7,
       maxTokens: config.maxTokens ?? 1024,

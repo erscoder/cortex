@@ -8,7 +8,7 @@ describe('LLMClient', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     client = new LLMClient({
-      provider: 'minimax',
+      provider: "minimax",
       apiKey: 'test-key',
       model: 'abab6.5s-chat',
     });

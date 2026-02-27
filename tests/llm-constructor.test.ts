@@ -6,12 +6,12 @@ describe('LLMClient - Constructor Default Branch Coverage', () => {
   
   describe('constructor - all branches', () => {
     it('should use all defaults when only provider provided', () => {
-      const client = new LLMClient({ provider: 'anthropic' });
+      const client = new LLMClient({ provider: "anthropic", apiKey: "test-key" });
       expect(client).toBeDefined();
     });
 
     it('should use minimax when specified', () => {
-      const client = new LLMClient({ provider: 'minimax' });
+      const client = new LLMClient({ provider: "minimax", apiKey: "test-key" });
       expect(client).toBeDefined();
     });
 
@@ -20,29 +20,29 @@ describe('LLMClient - Constructor Default Branch Coverage', () => {
       delete process.env.ANTHROPIC_API_KEY;
       delete process.env.MINIMAX_API_KEY;
       
-      const client = new LLMClient({ provider: 'anthropic' });
+      const client = new LLMClient({ provider: "anthropic", apiKey: "test-key" });
       expect(client).toBeDefined();
       
       process.env = original;
     });
 
     it('should use model when provided', () => {
-      const client = new LLMClient({ provider: 'anthropic', model: 'custom-model' });
+      const client = new LLMClient({ provider: "anthropic", apiKey: "test-key", model: 'custom-model' });
       expect(client).toBeDefined();
     });
 
     it('should use temperature when provided', () => {
-      const client = new LLMClient({ provider: 'anthropic', temperature: 0.5 });
+      const client = new LLMClient({ provider: "anthropic", apiKey: "test-key", temperature: 0.5 });
       expect(client).toBeDefined();
     });
 
     it('should use maxTokens when provided', () => {
-      const client = new LLMClient({ provider: 'anthropic', maxTokens: 2048 });
+      const client = new LLMClient({ provider: "anthropic", apiKey: "test-key", maxTokens: 2048 });
       expect(client).toBeDefined();
     });
 
     it('should use baseURL when provided', () => {
-      const client = new LLMClient({ provider: 'anthropic', baseURL: 'https://custom.api.com' });
+      const client = new LLMClient({ provider: "anthropic", apiKey: "test-key", baseURL: 'https://custom.api.com' });
       expect(client).toBeDefined();
     });
   });
@@ -54,7 +54,7 @@ describe('LLMClient - Constructor Default Branch Coverage', () => {
         json: async () => ({ content: [] }),
       });
 
-      const client = new LLMClient({ provider: 'anthropic', apiKey: 'key' });
+      const client = new LLMClient({ provider: "anthropic", apiKey: 'key' });
       const result = await client.complete('test');
 
       expect(result.content).toBe('');
@@ -66,7 +66,7 @@ describe('LLMClient - Constructor Default Branch Coverage', () => {
         json: async () => ({ content: [{ text: 'response' }] }),
       });
 
-      const client = new LLMClient({ provider: 'anthropic', apiKey: 'key' });
+      const client = new LLMClient({ provider: "anthropic", apiKey: 'key' });
       const result = await client.complete('test');
 
       expect(result.content).toBe('response');

@@ -38,39 +38,65 @@ npm install @cortex/agentic-platform
 ## 🚀 Quick Start
 
 ```typescript
-import { Agent } from '@cortex/agentic-platform';
-import { RedisShortTermMemory } from '@cortex/agentic-platform/memory';
-import { HybridRAGPipeline } from '@cortex/agentic-platform/rag';
+import { Agent, LLMClient } from '@cortex/agentic-platform';
+import { MemoryManager } from '@cortex/agentic-platform/memory';
+import { OpenAIEmbeddings } from '@cortex/agentic-platform/rag';
 import { SafeSandbox } from '@cortex/agentic-platform/sandbox';
 
-// Configure your agent
+// ⚠️ IMPORTANT: Pass your API keys explicitly
+// This is a library - we don't use environment variables
+
+// 1. Set up LLM client with your API key
+const llm = new LLMClient({
+  provider: 'anthropic',  // or 'minimax'
+  apiKey: 'your-anthropic-api-key-here',  // Required
+  model: 'claude-3-haiku-20240307',
+});
+
+// 2. Set up embeddings (if using RAG)
+const embeddings = new OpenAIEmbeddings({
+  apiKey: 'your-openai-api-key-here',  // Required
+  model: 'text-embedding-3-small',
+});
+
+// 3. Configure your agent
 const agent = new Agent({
   name: 'trading-bot',
-  model: 'claude-3-sonnet',
-  temperature: 0.7,
+  llm: llm.asReasonerFunction(),  // Pass LLM function
   
   // Enable features
   memory: true,
   reasoning: true,
   rag: true,
   sandbox: true,
-  humanInTheLoop: true,
+  humanInTheLoop: false,
 })
+.withMemory(new MemoryManager({
+  shortTerm: { host: 'localhost', port: 6379 },
+  longTerm: { database: 'cortex', user: 'cortex', password: 'password' },
+}))
+.withSandbox(new SafeSandbox());
 
-// Inject dependencies
-.withMemory(new RedisShortTermMemory({ host: 'localhost', port: 6379 }))
-.withRAG(new HybridRAGPipeline({ vectorStore, embeddingModel }))
-.withSandbox(new SafeSandbox())
-.withHITL(new HITLManager({ autoApproveLowRisk: true }));
-
-// Process a task
-const response = await agent.process({
-  input: 'Analyze BTC market and execute optimal trade',
-  context: { userId: 'trader-1' },
-});
+// 4. Process a task
+const response = await agent.process('Analyze BTC market and execute optimal trade');
 
 console.log(response.output);
 // "I'll analyze the BTC market..."
+```
+
+### Configuration
+
+All API keys must be passed explicitly in your code:
+
+```typescript
+// ❌ WRONG - Don't rely on environment variables
+const llm = new LLMClient({ provider: 'anthropic' });
+
+// ✅ CORRECT - Pass API key explicitly
+const llm = new LLMClient({
+  provider: 'anthropic',
+  apiKey: 'sk-ant-...',  // Your actual API key
+});
 ```
 
 ## 🏗️ Architecture

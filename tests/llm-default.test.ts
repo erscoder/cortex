@@ -6,12 +6,12 @@ describe('LLMClient - Default Provider Branch', () => {
   
   describe('constructor - default provider branch', () => {
     it('should use anthropic as default provider', () => {
-      const client = new LLMClient({ provider: 'anthropic', apiKey: 'test' });
+      const client = new LLMClient({ provider: "anthropic", apiKey: 'test' });
       expect(client).toBeDefined();
     });
 
     it('should use minimax when specified', () => {
-      const client = new LLMClient({ provider: 'minimax', apiKey: 'test' });
+      const client = new LLMClient({ provider: "minimax", apiKey: 'test' });
       expect(client).toBeDefined();
     });
 

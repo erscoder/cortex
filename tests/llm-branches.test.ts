@@ -15,7 +15,7 @@ describe('LLMClient - Branch Coverage', () => {
         text: async () => 'Internal Server Error',
       });
 
-      const client = new LLMClient({ provider: 'minimax', apiKey: 'test' });
+      const client = new LLMClient({ provider: "minimax", apiKey: 'test' });
       await expect(client.complete('test')).rejects.toThrow('500');
     });
 
@@ -25,7 +25,7 @@ describe('LLMClient - Branch Coverage', () => {
         json: async () => ({ choices: [] }),
       });
 
-      const client = new LLMClient({ provider: 'minimax', apiKey: 'test' });
+      const client = new LLMClient({ provider: "minimax", apiKey: 'test' });
       const result = await client.complete('test');
       expect(result.content).toBe('');
     });
@@ -36,7 +36,7 @@ describe('LLMClient - Branch Coverage', () => {
         json: async () => ({ choices: [{ message: null }] }),
       });
 
-      const client = new LLMClient({ provider: 'minimax', apiKey: 'test' });
+      const client = new LLMClient({ provider: "minimax", apiKey: 'test' });
       const result = await client.complete('test');
       expect(result.content).toBe('');
     });
@@ -52,7 +52,7 @@ describe('LLMClient - Branch Coverage', () => {
         }),
       });
 
-      const client = new LLMClient({ provider: 'anthropic', apiKey: 'test-key' });
+      const client = new LLMClient({ provider: "anthropic", apiKey: 'test-key' });
       await client.complete('test');
 
       expect(global.fetch).toHaveBeenCalledWith(
@@ -72,7 +72,7 @@ describe('LLMClient - Branch Coverage', () => {
       });
 
       const client = new LLMClient({ 
-        provider: 'minimax', 
+        provider: "minimax",
         apiKey: 'test', 
         baseURL: 'https://custom.api.com/v1' 
       });
@@ -92,7 +92,7 @@ describe('LLMClient - Branch Coverage', () => {
         json: async () => ({ choices: [{ message: { content: 'response' } }] }),
       });
 
-      const client = new LLMClient({ provider: 'minimax', apiKey: 'test' });
+      const client = new LLMClient({ provider: "minimax", apiKey: 'test' });
       const fn = client.asReasonerFunction();
       const result = await fn('prompt');
 

@@ -2,7 +2,7 @@
 import { EmbeddingModel } from './types';
 
 export interface OpenAIEmbeddingsConfig {
-  apiKey?: string;
+  apiKey: string;  // Required - no fallback to env
   model?: string;
   dimensions?: number;
   baseURL?: string;
@@ -14,18 +14,19 @@ export class OpenAIEmbeddings implements EmbeddingModel {
   private dimensions: number;
   private baseURL: string;
 
-  constructor(config: OpenAIEmbeddingsConfig = {}) {
-    this.apiKey = this.resolveApiKey(config.apiKey);
+  constructor(config: OpenAIEmbeddingsConfig) {
+    if (!config.apiKey) {
+      throw new Error(`OpenAI API key is required. Pass it explicitly in the config:
+        
+new OpenAIEmbeddings({
+  apiKey: 'your-openai-api-key-here'
+})`);
+    }
+
+    this.apiKey = config.apiKey;
     this.model = this.resolveModel(config.model);
     this.dimensions = this.resolveDimensions(config.dimensions);
     this.baseURL = this.resolveBaseURL(config.baseURL);
-  }
-
-  // Extracted for testability - each method can be tested independently
-  private resolveApiKey(provided?: string): string {
-    if (provided) return provided;
-    const envKey = process.env.OPENAI_API_KEY;
-    return envKey || '';
   }
 
   private resolveModel(provided?: string): string {
