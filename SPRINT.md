@@ -15,16 +15,49 @@ Construir la base del framework con memoria funcional (short-term + long-term) y
 **Estimación:** 2 horas
 
 **Descripción:**  
-El build tiene errores de TypeScript. Necesita arreglar los tipos en reasoner.ts y completar el agente.
+El proyecto actualmente tiene errores de TypeScript que bloquean el build. Necesitamos corregir todos los errores de tipos antes de continuar con el desarrollo.
 
 **Subtareas:**
-- [ ] 1.1 Fix imports en reasoner.ts (`./types` → `./reasoning/types`)
-- [ ] 1.2 Arreglar tipos de `steps` (implicit any)
-- [ ] 1.3 Fix null vs undefined en parseResponse
-- [ ] 1.4 Fix SearchOptions default en pipeline.ts
-- [ ] 1.5 Agregar AgentAction type con `requiresApproval` obligatorio
-- [ ] 1.6 Correr `npm run build` y verificar 0 errores
-- [ ] 1.7 Commit: `fix: build errors resolved`
+- [ ] **1.1 Fix import paths en reasoner.ts**
+  - Cambiar `./types` → `./reasoning/types`
+  - Verificar que el módulo existe en la ruta correcta
+  - Verificar otros imports en el archivo
+
+- [ ] **1.2 Arreglar tipos de `steps` array**
+  - Problema: implicit any en el array de pasos
+  - Solución: Definir type `ReasoningStep = { description: string; result: string }`
+  - Aplicar el tipo a todos los arrays de steps
+
+- [ ] **1.3 Fix null vs undefined en parseResponse**
+  - Problema: Función puede retornar null o undefined
+  - Solución: Decidir semántica (usar null para "sin respuesta", undefined para "error")
+  - Actualizar tipos de retorno y consumers
+
+- [ ] **1.4 Fix SearchOptions default en pipeline.ts**
+  - Problema: Default object no cumple con interface completa
+  - Solución: Agregar todos los campos requeridos al default
+  - O hacer campos opcionales si tiene sentido
+
+- [ ] **1.5 Agregar AgentAction type completo**
+  - Crear interface `AgentAction` en `types.ts`
+  - Campos: `type: string`, `payload: any`, `requiresApproval: boolean`
+  - Usar el tipo en todo el código donde se manejan acciones
+
+- [ ] **1.6 Verificar build completo**
+  - Correr `npm run build`
+  - Verificar 0 errores de TypeScript
+  - Verificar 0 warnings críticos
+
+- [ ] **1.7 Commit con mensaje convencional**
+  - Formato: `fix: resolve TypeScript build errors`
+  - Body: Listar los 5 errores arreglados
+
+**Definition of Done:**
+- ✅ Build pasa sin errores (`npm run build` exitoso)
+- ✅ TypeScript en modo strict sin warnings
+- ✅ Todos los tipos explícitos (no implicit any)
+- ✅ Unit tests básicos para tipos nuevos (coverage ≥ 90%)
+- ✅ Commit siguiendo Conventional Commits
 
 ---
 
@@ -34,15 +67,82 @@ El build tiene errores de TypeScript. Necesita arreglar los tipos en reasoner.ts
 **Estimación:** 3 horas
 
 **Descripción:**  
-Implementar memoria de corto plazo usando Redis para persistir contexto entre mensajes.
+Implementar memoria de corto plazo usando Redis para persistir contexto de conversación entre mensajes. TTL de 1 hora por defecto.
+
+**Prerequisitos:**
+- Redis corriendo (Docker Compose o local)
+- Verificar conexión con `redis-cli ping`
 
 **Subtareas:**
-- [ ] 2.1 Crear cliente Redis con ioredis
-- [ ] 2.2 Implementar clase `RedisShortTermMemory` con TTL
-- [ ] 2.3 Métodos: `save(key, value)`, `get(key)`, `delete(key)`, `clear(sessionId)`
-- [ ] 2.4 Agregar tests unitarios (Jest)
-- [ ] 2.5 Integrar en Agent con dependency injection
-- [ ] 2.6 Commit: `feat: short-term memory with Redis`
+- [ ] **2.1 Setup cliente Redis**
+  - Instalar `ioredis` package
+  - Crear `src/memory/redis-client.ts`
+  - Config: host, port, password desde env vars
+  - Método `connect()` con retry logic
+  - Método `disconnect()` para cleanup
+
+- [ ] **2.2 Implementar RedisShortTermMemory clase**
+  - Path: `src/memory/short-term/redis.ts`
+  - Interface `ShortTermMemory` con métodos base
+  - Constructor recibe RedisClient
+  - TTL configurable (default 3600s)
+
+- [ ] **2.3 Método save(key, value)**
+  - Serializar value a JSON
+  - Usar `SETEX` con TTL
+  - Prefijo de namespace: `cortex:stm:`
+  - Error handling y logging
+  - Retornar boolean (success/fail)
+
+- [ ] **2.4 Método get(key)**
+  - Usar `GET` con namespace
+  - Deserializar JSON
+  - Retornar null si no existe o expiró
+  - Type safety con generics: `get<T>(key: string): Promise<T | null>`
+
+- [ ] **2.5 Método delete(key)**
+  - Usar `DEL` comando
+  - Retornar boolean (key existed?)
+  - Log deletion para audit
+
+- [ ] **2.6 Método clear(sessionId)**
+  - Usar `SCAN` para encontrar keys del session
+  - Pattern: `cortex:stm:${sessionId}:*`
+  - Batch delete con `DEL`
+  - Retornar número de keys eliminadas
+
+- [ ] **2.7 Unit tests con Jest**
+  - Mock de ioredis con `ioredis-mock`
+  - Test: save y get redondea correctamente
+  - Test: TTL expira correctamente
+  - Test: delete elimina
+  - Test: clear elimina solo del session correcto
+  - Test: error handling cuando Redis falla
+  - **Coverage target: ≥ 90%**
+
+- [ ] **2.8 Integration test (opcional)**
+  - Test real contra Redis en Docker
+  - Skip si Redis no disponible
+  - Path: `tests/integration/redis-memory.test.ts`
+
+- [ ] **2.9 Documentación**
+  - Docstrings JSDoc en todos los métodos
+  - README.md en `src/memory/` explicando uso
+  - Ejemplo de uso en el README
+
+- [ ] **2.10 Commit**
+  - Formato: `feat(memory): implement Redis short-term memory`
+  - Body: Explicar decisiones de diseño (TTL, namespace, etc)
+
+**Definition of Done:**
+- ✅ RedisShortTermMemory clase completa y funcional
+- ✅ Unit tests con coverage ≥ 90%
+- ✅ Integration test opcional (contra Docker)
+- ✅ Documentación JSDoc completa
+- ✅ README con ejemplos de uso
+- ✅ TypeScript strict mode sin errores
+- ✅ Error handling robusto
+- ✅ Commit con Conventional Commits
 
 ---
 
@@ -52,16 +152,102 @@ Implementar memoria de corto plazo usando Redis para persistir contexto entre me
 **Estimación:** 4 horas
 
 **Descripción:**  
-Implementar memoria de largo plazo con PostgreSQL y búsqueda vectorial.
+Implementar memoria de largo plazo con PostgreSQL y búsqueda vectorial usando pgvector. Stores permanente de memories con embeddings para búsqueda semántica.
+
+**Prerequisitos:**
+- PostgreSQL corriendo con pgvector extension
+- Verificar: `SELECT * FROM pg_extension WHERE extname = 'vector';`
 
 **Subtareas:**
-- [ ] 3.1 Crear script de migración SQL para tabla `cortex_memories`
-- [ ] 3.2 Implementar `PostgresLongTermMemory` clase
-- [ ] 3.3 Métodos: `save(memory)`, `search(query)`, `delete(id)`
-- [ ] 3.4 Agregar campo `embedding` para búsqueda semántica
-- [ ] 3.5 Agregar métodos de cleanup (memories > 30 días)
-- [ ] 3.6 Tests: CRUD + búsqueda
-- [ ] 3.7 Commit: `feat: long-term memory with PostgreSQL`
+- [ ] **3.1 Script de migración SQL**
+  - Path: `migrations/001_create_memories_table.sql`
+  - Tabla `cortex_memories`:
+    ```sql
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    session_id VARCHAR(255) NOT NULL,
+    content TEXT NOT NULL,
+    embedding VECTOR(1536),  -- OpenAI ada-002 dimensión
+    metadata JSONB,
+    created_at TIMESTAMP DEFAULT NOW(),
+    expires_at TIMESTAMP NULL,
+    INDEX idx_session (session_id),
+    INDEX idx_created (created_at),
+    INDEX idx_embedding (embedding vector_cosine_ops)
+    ```
+  - Script para crear extension: `CREATE EXTENSION IF NOT EXISTS vector;`
+  - Script de rollback en `migrations/001_rollback.sql`
+
+- [ ] **3.2 Implementar PostgresLongTermMemory clase**
+  - Path: `src/memory/long-term/postgres.ts`
+  - Interface `LongTermMemory` con métodos base
+  - Constructor recibe Postgres pool
+  - Connection pooling con `pg` package
+
+- [ ] **3.3 Método save(memory)**
+  - Input: `{ sessionId, content, embedding?, metadata?, expiresAt? }`
+  - INSERT en tabla con RETURNING id
+  - Auto-generar UUID si no viene
+  - Validar embedding dimensión (1536)
+  - Error handling y logging
+  - Retornar Memory object completo
+
+- [ ] **3.4 Método search(query, options)**
+  - Input: `{ embedding, sessionId?, limit?, minScore? }`
+  - Query con vector similarity:
+    ```sql
+    SELECT *, 1 - (embedding <=> $1) as score
+    FROM cortex_memories
+    WHERE session_id = $2 AND (expires_at IS NULL OR expires_at > NOW())
+    ORDER BY embedding <=> $1
+    LIMIT $3
+    ```
+  - Filtrar por minScore si viene
+  - Retornar array de Memory + score
+
+- [ ] **3.5 Método delete(id)**
+  - DELETE por UUID
+  - Retornar boolean (row deleted?)
+  - Soft delete opcional (agregar deleted_at column)
+
+- [ ] **3.6 Método cleanup()**
+  - DELETE memories con expires_at < NOW()
+  - Retornar número de rows eliminadas
+  - Ejecutar periódicamente (cron job)
+
+- [ ] **3.7 Unit tests con Jest**
+  - Mock de pg pool
+  - Test: save inserta correctamente
+  - Test: search retorna por similaridad
+  - Test: delete elimina
+  - Test: cleanup elimina expirados
+  - Test: error handling cuando DB falla
+  - **Coverage target: ≥ 90%**
+
+- [ ] **3.8 Integration test**
+  - Test real contra Postgres en Docker
+  - Setup: Correr migraciones
+  - Test: Full CRUD flow
+  - Test: Vector search con embeddings reales
+  - Teardown: Limpiar tabla
+
+- [ ] **3.9 Documentación**
+  - Docstrings JSDoc en todos los métodos
+  - README con setup de pgvector
+  - Ejemplo de búsqueda semántica
+
+- [ ] **3.10 Commit**
+  - Formato: `feat(memory): implement PostgreSQL long-term memory with pgvector`
+
+**Definition of Done:**
+- ✅ PostgresLongTermMemory clase completa
+- ✅ Migraciones SQL versionadas
+- ✅ Unit tests con coverage ≥ 90%
+- ✅ Integration test contra Postgres real
+- ✅ Búsqueda vectorial funcionando
+- ✅ Documentación completa
+- ✅ Cleanup automático de expirados
+- ✅ TypeScript strict mode
+- ✅ Commit con Conventional Commits
 
 ---
 
@@ -71,171 +257,6 @@ Implementar memoria de largo plazo con PostgreSQL y búsqueda vectorial.
 **Estimación:** 2 horas
 
 **Descripción:**  
-Crear clase unificada `MemoryManager` que combine short-term + long-term.
+Crear clase `MemoryManager` que unifique short-term y long-term memory con una API simple. Cache hit automático en Redis antes de PostgreSQL.
 
-**Subtareas:**
-- [ ] 4.1 Crear clase `MemoryManager` que envuelva ambos stores
-- [ ] 4.2 Método `remember()` - guarda en ambos niveles
-- [ ] 4.3 Método `recall()` - busca en long-term, cachea en short-term
-- [ ] 4.4 Método `forget()` - elimina de ambos
-- [ ] 4.5 Integrar en Agent orchestrator
-- [ ] 4.6 Commit: `feat: unified memory manager`
-
----
-
-### 🎯 Tarea 5: RAG Pipeline - Embedding + Vector Store
-**Owner:** Codex  
-**Prioridad:** P1 - High  
-**Estimación:** 4 horas
-
-**Descripción:**  
-Implementar pipeline RAG funcional con embedding y búsqueda vectorial.
-
-**Subtareas:**
-- [ ] 5.1 Crear interface `EmbeddingModel` (OpenAI compatible 5.2)
-- [ ] Implementar `OpenAIEmbeddings` clase
-- [ ] 5.3 Implementar `WeaviateVectorStore` con el cliente correcto (v3)
-- [ ] 5.4 Implementar `HybridRAGPipeline` con search + rerank
-- [ ] 5.5 Método `buildContext()` - construye contexto desde resultados
-- [ ] 5.6 Tests: embedding, vector search, pipeline completo
-- [ ] 5.7 Commit: `feat: RAG pipeline with embeddings`
-
----
-
-### 🎯 Tarea 6: Reasoner - Chain of Thought
-**Owner:** Codex  
-**Prioridad:** P1 - High  
-**Estimación:** 3 horas
-
-**Descripción:**  
-Implementar razonamiento paso a paso integrado con LLM.
-
-**Subtareas:**
-- [ ] 6.1 Completar clase `ChainOfThoughtReasoner`
-- [ ] 6.2 Integrar con LLM (Anthropic/minimax client). Usamos la subscripcion de antropic y de minimax tenemos la apikey, se puede coger de la configuracion de openclaw
-- [ ] 6.3 Método `think()` que genera reasoning steps
-- [ ] 6.4 Detectar cuándo necesita RAG (needsRag flag)
-- [ ] 6.5 Detectar cuándo necesita acción (actions array)
-- [ ] 6.6 Tests: reasoning con prompts de ejemplo
-- [ ] 6.7 Commit: `feat: chain-of-thought reasoner`
-
----
-
-### 🎯 Tarea 7: Sandbox Executor - Safe Command Execution
-**Owner:** Codex  
-**Prioridad:** P2 - Medium  
-**Estimación:** 3 horas
-
-**Descripción:**  
-Implementar ejecutor seguro de comandos con allowlist y validación.
-
-**Subtareas:**
-- [ ] 7.1 Completar clase `SafeSandbox`
-- [ ] 7.2 Implementar `validate()` con blocked patterns
-- [ ] 7.3 Implementar `execute()` con timeout y logging
-- [ ] 7.4 Allowlist de comandos seguros (npm, git, ls, cat)
-- [ ] 7.5 Block patterns (rm -rf, curl|wget|sh, sudo)
-- [ ] 7.6 Require approval patterns (rm, DROP, DELETE)
-- [ ] 7.7 Tests: validación y ejecución
-- [ ] 7.8 Commit: `feat: safe sandbox executor`
-
----
-
-### 🎯 Tarea 8: Human-in-the-Loop (HITL)
-**Owner:** Codex  
-**Prioridad:** P2 - Medium  
-**Estimación:** 2 horas
-
-**Descripción:**  
-Sistema de aprobaciones humanas para acciones riesgosas.
-
-**Subtareas:**
-- [ ] 8.1 Completar clase `HITLManager`
-- [ ] 8.2 Método `requestApproval()` con risk assessment
-- [ ] 8.3 Auto-approve para low-risk
-- [ ] 8.4 Pending queue para approval
-- [ ] 8.5 Callback para notificaciones (Telegram/Slack)
-- [ ] 8.6 Tests: approval flow
-- [ ] 8.7 Commit: `feat: human-in-the-loop approvals`
-
----
-
-### 🎯 Tarea 9: Integration - Agent con Todo Integrado
-**Owner:** Harvis (coordinación)  
-**Prioridad:** P0 - Critical  
-**Estimación:** 2 horas
-
-**Descripción:**  
-Integrar todos los módulos en el Agent y crear ejemplo funcional.
-
-**Subtareas:**
-- [ ] 9.1 Integrar MemoryManager en Agent
-- [ ] 9.2 Integrar RAG pipeline en Agent
-- [ ] 9.3 Integrar Reasoner en Agent
-- [ ] 9.4 Integrar Sandbox + HITL en Agent
-- [ ] 9.5 Crear ejemplo `examples/basic-agent.ts`
-- [ ] 9.6 Demo: agente que razona, busca, ejecuta
-- [ ] 9.7 Commit: `feat: complete agent integration`
-
----
-
-### 🎯 Tarea 10: MLOps - Tracking & Evaluation
-**Owner:** Codex  
-**Prioridad:** P3 - Low  
-**Estimación:** 2 horas
-
-**Descripción:**  
-Sistema básico de tracking de experimentos y métricas.
-
-**Subtareas:**
-- [ ] 10.1 Completar `MLflowTracker` 
-- [ ] 10.2 Métodos: createExperiment, logMetrics, registerModel
-- [ ] 10.3 Production metrics logging
-- [ ] 10.4 Tests básicos
-- [ ] 10.5 Commit: `feat: MLOps tracking`
-
----
-
-## 📊 Resumen del Sprint
-
-| Tarea | Owner | Prio | Horas |
-|-------|-------|------|-------|
-| 1. Fix Build | Codex | P0 | 2h |
-| 2. Short-term Memory | Codex | P0 | 3h |
-| 3. Long-term Memory | Codex | P0 | 4h |
-| 4. Memory Interface | Codex | P1 | 2h |
-| 5. RAG Pipeline | Codex | P1 | 4h |
-| 6. Reasoner | Codex | P1 | 3h |
-| 7. Sandbox | Codex | P2 | 3h |
-| 8. HITL | Codex | P2 | 2h |
-| 9. Integration | Harvis | P0 | 2h |
-| 10. MLOps | Codex | P3 | 2h |
-
-**Total estimado:** 27 horas  
-**Duración:** 1 semana  
-**Dificultad:** Alta
-
----
-
-## 🎯 Definition of Done
-
-- [ ] Build pasa sin errores
-- [ ] Todos los módulos tienen tests (cobertura > 80%)
-- [ ] Ejemplo funcional corre
-- [ ] Documentación actualizada
-- [ ] Commits con Conventional Commits
-
----
-
-## 📋 Asignación de Agentes
-
-```
-@Codex: Tareas 1-8, 10 (desarrollo)
-@Harvis: Coordinación + Tarea 9 (integration)
-```
-
----
-
-## 🚀 Ready for Sprint
-
-@Codex - ¿Empezamos por la Tarea 1 (fix build errors)?
+**Subtareas
