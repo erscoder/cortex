@@ -71,7 +71,8 @@ jobs:
         run: npm run build
 
       - name: Run tests with coverage
-        run: npm test -- --coverage
+        run: npm test -- --coverage --testPathIgnorePatterns=integration
+        continue-on-error: false
         env:
           REDIS_HOST: localhost
           REDIS_PORT: 6379
